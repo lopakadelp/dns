@@ -23,10 +23,10 @@ suites:
     cloud:
       provider: vagrant
     dns:
-      provider: aws
+      provider: dnsmadeeasy
       credentials:
-         aws_access_key_id: AWS_KEY
-         aws_secret_access_key: AWS_PRIV
+        dnsmadeeasy_api_key: DME_KEY
+        dnsmadeeasy_secret_key: DME_SECRET
       entry:
         name: test1.test.rightscale.com
         type: A
