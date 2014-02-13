@@ -1,4 +1,4 @@
-actions :create, :destroy
+actions :create, :destroy, :update
 default_action :create
 
 attribute :entry_name, :kind_of => String
