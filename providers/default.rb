@@ -49,9 +49,6 @@ action :destroy do
 end
 
 def connection
-  @con ||= CookbookDNS.fog(
-    Mash.new(:provider => new_resource.provider).merge(
-      new_resource.credentials
-    ).to_hash
+  @con ||= CookbookDNS.fog(new_resource.credentials.merge(:provider => new_resource.provider)
   )
 end

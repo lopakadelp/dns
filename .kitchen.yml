@@ -22,3 +22,12 @@ suites:
   attributes:
     cloud:
       provider: vagrant
+    dns:
+      provider: aws
+      credentials:
+         aws_access_key_id: AWS_KEY
+         aws_secret_access_key: AWS_PRIV
+      entry:
+        name: test1.test.rightscale.com
+        type: A
+        value: 192.168.1.1
