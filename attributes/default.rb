@@ -1,4 +1,5 @@
 default[:dns][:provider] = node[:cloud] ? node[:cloud][:provider] : nil
+default[:dns][:domain] = node[:domain]
 default[:dns][:credentials] = {}
 default[:dns][:disable] = !node[:cloud]
 default[:dns][:entry][:name] = node[:fqdn]
