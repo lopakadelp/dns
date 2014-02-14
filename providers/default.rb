@@ -66,20 +66,20 @@ end
 
 action :update do
   if new_resource.provider == "dnsmadeeasy"
-    # Initiate connection and grab list of domains in account
+    # From Fog doc:
+    #
+    # DNS Made Easy has no update record method but they plan to add it in the next update!
+    # They sent a reponse suggesting, there going to internaly delete/create a new record when
+    # we make update record call, so I've done the same here for now! If want to update a record,
+    # it might be better to manually destroy and then create a new record
+
+
     account_domains = connection.list_domains
 
-    # Use FQDN to generate domain.
-    # Will assume domain name is the removal of the first section of FQDN.
-    (subdomain, domain) = new_resource.entry_name.split('.', 2)
-
-    # Verify domain is in account
-    raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT" unless account_domains[:body]["list"].include?(domain)
-
-    # Check all A records if DNS entry already exists.
+    # Check all A records confirming record_id exists.
     all_records = connection.list_records(domain,{"type" => "A"})
-    if all_records[:body].detect { | entry | entry['name'] == subdomain && entry['id'] == new_resource.record_id }
-      raise "Entry matching id='#{entry['id']}' and entry='#{subdomain}' does not exist"
+    if all_records[:body].detect { | entry | entry['id'] == new_resource.record_id }
+      raise "Entry matching id='#{entry['id']}' does not exist"
     end
 
     options = Hash.new
@@ -102,18 +102,22 @@ action :destroy do
     # Initiate connection and grab list of domains in account
     account_domains = connection.list_domains
 
-    # Verify domain is in account
-    raise "DOMAIN '#{new_resource.domain}' NOT AVAILABLE IN ACCOUNT" unless account_domains[:body]["list"].include?(new_resource.domain)
+    # Use FQDN to generate domain.
+    # Will assume domain name is the removal of the first section of FQDN.
+    (subdomain, domain) = new_resource.entry_name.split('.', 2)
 
-    # Check all A records if record_id DNS entry exists.
+    # Verify domain is in account
+    raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT" unless account_domains[:body]["list"].include?(domain)
+
+    # Check all A records if DNS entry already exists.
     all_records = connection.list_records(domain,{"type" => "A"})
-    if all_records[:body].detect { | entry | entry['id'] == new_resource.record_id }
-      raise "Entry #{new_resource.record_id} does not exists - cannot delete"
+    unless found_record = all_records[:body].find { | entry | entry['name'] == subdomain }
+      raise "Entry '#{new_resource.entry_name}' does not exist"
     end
 
-    connection.delete_record(new_resource.domain, new_resource.record_id)
+    connection.delete_record(domain, found_record['id'])
+    Chef::Log.info "Deleted DNS entry #{new_resource.entry_name} (#{found_record['id']})"
 
-    Chef::Log.info "Deleted DNS entry: #{new_resource.record_id}"
     new_resource.updated_by_last_action(true)
 
   else

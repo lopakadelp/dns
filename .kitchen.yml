@@ -25,13 +25,12 @@ suites:
     dns:
       provider: dnsmadeeasy
       credentials:
-        dnsmadeeasy_api_key: DME_KEY
-        dnsmadeeasy_secret_key: DME_SECRET
+        dnsmadeeasy_api_key: API_KEY
+        dnsmadeeasy_secret_key: SECRET_KEY
       entry:
-        name: a1test.test.rightscale.com
+        name: 101test.test.rightscale.com
         type: A
         value: 192.168.1.1
-        record_id: 13900763
         ttl: 60
 - name: update
   run_list: ["recipe[dns::update]"]
@@ -41,11 +40,23 @@ suites:
     dns:
       provider: dnsmadeeasy
       credentials:
-        dnsmadeeasy_api_key: DME_KEY
-        dnsmadeeasy_secret_key: DME_SECRET
+        dnsmadeeasy_api_key: API_KEY
+        dnsmadeeasy_secret_key: SECRET_KEY
       entry:
-        name: a1test.test.rightscale.com
+        name: 101test.test.rightscale.com
         type: A
         value: 192.168.1.2
-        record_id: "13900763"
         ttl: 60
+- name: update
+  run_list: ["recipe[dns::delete]"]
+  attributes:
+    cloud:
+      provider: vagrant
+    dns:
+      provider: dnsmadeeasy
+      credentials:
+        dnsmadeeasy_api_key: API_KEY
+        dnsmadeeasy_secret_key: SECRET_KEY
+      entry:
+        name: 101test.test.rightscale.com
+        type: A
