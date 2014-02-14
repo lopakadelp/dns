@@ -34,6 +34,11 @@ action :create do
   end
 end
 
+action :update do
+  # update action not yet available in this provider.
+  false
+end
+
 action :destroy do
   zone = connection.zones.detect do |z|
     z.domain == new_resource.domain

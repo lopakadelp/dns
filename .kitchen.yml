@@ -28,7 +28,8 @@ suites:
         dnsmadeeasy_api_key: DME_KEY
         dnsmadeeasy_secret_key: DME_SECRET
       entry:
-        name: a1-test.test.rightscale.com
+        name: a1test.test.rightscale.com
         type: A
         value: 192.168.1.1
+        record_id: 13900763
         ttl: 60
