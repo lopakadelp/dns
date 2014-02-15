@@ -73,23 +73,8 @@ action :update do
     # we make update record call, so I've done the same here for now! If want to update a record,
     # it might be better to manually destroy and then create a new record
 
-
-    account_domains = connection.list_domains
-
-    # Check all A records confirming record_id exists.
-    all_records = connection.list_records(domain,{"type" => "A"})
-    if all_records[:body].detect { | entry | entry['id'] == new_resource.record_id }
-      raise "Entry matching id='#{entry['id']}' does not exist"
-    end
-
-    options = Hash.new
-    options[:ttl] = new_resource.ttl ? new_resource.ttl : 1800
-
-    connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
-
-    Chef::Log.info "Created DNS entry: #{new_resource.entry_name} -> #{new_resource.entry_value}"
-
-    new_resource.updated_by_last_action(true)
+    action_destroy
+    action_create
 
   else
     # update action not yet available for other DNS providers

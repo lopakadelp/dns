@@ -45,9 +45,9 @@ suites:
       entry:
         name: 101test.test.rightscale.com
         type: A
-        value: 192.168.1.2
+        value: 192.168.200.200
         ttl: 60
-- name: update
+- name: delete
   run_list: ["recipe[dns::delete]"]
   attributes:
     cloud:
@@ -59,4 +59,3 @@ suites:
         dnsmadeeasy_secret_key: SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
-        type: A
