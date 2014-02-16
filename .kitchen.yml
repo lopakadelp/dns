@@ -25,8 +25,8 @@ suites:
     dns:
       provider: dnsmadeeasy
       credentials:
-        dnsmadeeasy_api_key: API_KEY
-        dnsmadeeasy_secret_key: SECRET_KEY
+        dnsmadeeasy_api_key: DME_API_KEY
+        dnsmadeeasy_secret_key: DME_SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
         type: A
@@ -40,8 +40,8 @@ suites:
     dns:
       provider: dnsmadeeasy
       credentials:
-        dnsmadeeasy_api_key: API_KEY
-        dnsmadeeasy_secret_key: SECRET_KEY
+        dnsmadeeasy_api_key: DME_API_KEY
+        dnsmadeeasy_secret_key: DME_SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
         type: A
@@ -55,7 +55,22 @@ suites:
     dns:
       provider: dnsmadeeasy
       credentials:
-        dnsmadeeasy_api_key: API_KEY
-        dnsmadeeasy_secret_key: SECRET_KEY
+        dnsmadeeasy_api_key: DME_API_KEY
+        dnsmadeeasy_secret_key: DME_SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
+- name: aws
+  run_list: ["recipe[dns::default]"]
+  attributes:
+    cloud:
+      provider: vagrant
+    dns:
+      provider: aws
+      credentials:
+        aws_access_key_id: AWS_API_KEY
+        aws_secret_access_key: AWS_SECRET_KEY
+      entry:
+        name: 101test.rs-st.rightscale.com.
+        type: A
+        value: 192.168.1.1
+        ttl: 60

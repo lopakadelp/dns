@@ -5,25 +5,44 @@ def load_current_resource
 end
 
 action :create do
-  if new_resource.provider == "dnsmadeeasy"
+  if new_resource.provider == "dnsmadeeasy" || new_resource.provider == "aws"
     # using Fog DNSMadeEasy API calls,
     # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
 
     # Initiate connection and grab list of domains in account
-    account_domains = connection.list_domains
+#    account_domains = connection.list_domains
+
 
     # Use FQDN to generate domain.
     # Will assume domain name is the removal of the first section of FQDN.
     (subdomain, domain) = new_resource.entry_name.split('.', 2)
 
     # Verify domain is in account
-    raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT" unless account_domains[:body]["list"].include?(domain)
+#-----------
+#    raise "DEBUG blah: #{connection.zones.inspect}"
+    # DME - zone.id matches domain
+    # AWS - zone.domain matches domain
+    unless zone = connection.zones.detect { | zone_entry | zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/ }
+      raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
+    end
+#-----------
 
-    # Check all A records if DNS entry already exists.
-    all_records = connection.list_records(domain,{"type" => "A"})
-    if all_records[:body].detect { | entry | entry['name'] == subdomain }
+###    record = zone.records.detect do |r|
+###      r.name == new_resource.entry_name
+###    end
+###    raise "DEBUG blah1: #{zone.records.inspect}"
+
+    # DME record.name matches subdomain
+    # AWS record.name matches FQDN ending in .
+    if record = zone.records.detect { | record_entry | record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/ } 
       raise "Entry '#{subdomain}.#{domain}' already exists"
     end
+
+    # Check all A records if DNS entry already exists.
+#    all_records = connection.list_records(domain,{"type" => "A"})
+#    if all_records[:body].detect { | entry | entry['name'] == subdomain }
+#      raise "Entry '#{subdomain}.#{domain}' already exists"
+#    end
 
     options = Hash.new
     options[:ttl] = new_resource.ttl ? new_resource.ttl : 1800
