@@ -4,7 +4,7 @@ include_recipe 'build-essential'
 # Dependencies required by nokogiri (for fog)
 nokogiri_dependencies = value_for_platform_family(
   ["centos", "rhel"] => ["libxslt-devel", "libxml2-devel"],
-  "ubuntu" => ["libxslt-dev", "libxml2-dev"]
+  "debian" => ["libxslt-dev", "libxml2-dev"]
   )
 nokogiri_dependencies.each do |pkg|
   c_pkg = package(pkg)
