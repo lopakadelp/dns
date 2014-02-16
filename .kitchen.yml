@@ -1,0 +1,61 @@
+---
+driver_plugin: vagrant
+driver_config:
+  require_chef_omnibus: true
+  customize:
+    cpus: 2
+    memory: 1024
+
+platforms:
+- name: ubuntu-12.04
+  driver_config:
+    box: opscode-ubuntu-12.04
+    box_url: https://opscode-vm-bento.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box
+- name: centos-6.4
+  driver_config:
+    box: opscode-centos-6.4
+    box_url: https://opscode-vm-bento.s3.amazonaws.com/vagrant/opscode_centos-6.4_provisionerless.box
+
+suites:
+- name: default
+  run_list: ["recipe[dns::default]"]
+  attributes:
+    cloud:
+      provider: vagrant
+    dns:
+      provider: dnsmadeeasy
+      credentials:
+        dnsmadeeasy_api_key: API_KEY
+        dnsmadeeasy_secret_key: SECRET_KEY
+      entry:
+        name: 101test.test.rightscale.com
+        type: A
+        value: 192.168.1.1
+        ttl: 60
+- name: update
+  run_list: ["recipe[dns::update]"]
+  attributes:
+    cloud:
+      provider: vagrant
+    dns:
+      provider: dnsmadeeasy
+      credentials:
+        dnsmadeeasy_api_key: API_KEY
+        dnsmadeeasy_secret_key: SECRET_KEY
+      entry:
+        name: 101test.test.rightscale.com
+        type: A
+        value: 192.168.200.200
+        ttl: 60
+- name: delete
+  run_list: ["recipe[dns::delete]"]
+  attributes:
+    cloud:
+      provider: vagrant
+    dns:
+      provider: dnsmadeeasy
+      credentials:
+        dnsmadeeasy_api_key: API_KEY
+        dnsmadeeasy_secret_key: SECRET_KEY
+      entry:
+        name: 101test.test.rightscale.com
