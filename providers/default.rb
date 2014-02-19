@@ -13,40 +13,72 @@ action :create do
   # Verify domain is in account
   # DME - zone.id matches domain
   # AWS - zone.domain matches domain
-  unless zone = connection.zones.detect { | zone_entry | zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/ }
+  unless zone = connection.zones.detect { | zone_entry |
+    zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
+  }
+    raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
+  end
+  
+  # Checking if DNS entry with value already exists.  Will skip if it already exists.
+  if zone.records.detect { | record_entry |
+    (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/) &&
+    record_entry.value == new_resource.entry_value
+  }
+    Chef::Log.info "DNS entry already exists."
+
+  else
+    # Options for record creation.
+    options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
+    options[:priority] = new_resource.priority if new_resource.priority
+
+    case new_resource.provider
+    when "dnsmadeeasy"
+      # Using Fog DNSMadeEasy API call to create record:
+      # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
+      connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
+    else
+      zone.records.create({:value => new_resource.entry_value,
+                          :name => new_resource.entry_name,
+                          :type => new_resource.type.upcase}.merge(options)
+                         )
+
+    Chef::Log.info "Created DNS entry: #{new_resource.entry_name} -> #{new_resource.entry_value}"
+    end
+  end
+  new_resource.updated_by_last_action(true)
+
+end
+
+action :update do
+  # Use FQDN to generate domain.
+  # Will assume domain name is the removal of the first section of FQDN.
+  (subdomain, domain) = new_resource.entry_name.split('.', 2)
+
+  # Verify domain is in account
+  # DME - zone.id matches domain
+  # AWS - zone.domain matches domain
+  unless zone = connection.zones.detect { | zone_entry |
+    zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
+  }
     raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
   end
 
-  # Check records if DNS entry already exists.
+  # Check records if DNS entry exists.
   # DME record.name matches subdomain ie 'www'
   # AWS record.name matches FQDN ending in 'www.domain.com.'
-  if record = zone.records.detect { | record_entry | record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/ } 
-    raise "Entry '#{subdomain}.#{domain}' already exists"
+  unless record = zone.records.detect { | record_entry |
+    (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/) &&
+  } 
+    raise "Entry '#{new_resource.entry_name}' does not exist"
   end
+  record_entry.value == new_resource.entry_oldvalue
 
-  # Create hash with options for creating the record.
-  options = Hash.new
-  options[:ttl] = new_resource.ttl ? new_resource.ttl : 1800
+  # Options for updating record.
+  options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
   options[:priority] = new_resource.priority if new_resource.priority
 
   case new_resource.provider
   when "dnsmadeeasy"
-    # Using Fog DNSMadeEasy API call:
-    # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
-    connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
-  else
-    zone.records.create({:value => new_resource.entry_value,
-                        :name => new_resource.entry_name,
-                        :type => new_resource.type.upcase}.merge(options)
-                       )
-  end
-
-  Chef::Log.info "Created DNS entry: #{new_resource.entry_name} -> #{new_resource.entry_value}"
-  new_resource.updated_by_last_action(true)
-end
-
-action :update do
-  if new_resource.provider == "dnsmadeeasy"
     # From Fog doc:
     #
     # DNS Made Easy has no update record method but they plan to add it in the next update!
@@ -54,13 +86,18 @@ action :update do
     # we make update record call, so I've done the same here for now! If want to update a record,
     # it might be better to manually destroy and then create a new record
 
-    action_destroy
-    action_create
-
+    # Using Fog DNSMadeEasy API call to delete record:
+    # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
+    record.update_record(domain, record.id, options)
   else
-    # update action not yet available for other DNS providers
-    false
+    record.update({:value => new_resource.entry_value,
+                   :name => new_resource.entry_name,
+                   :type => new_resource.type.upcase}.merge(options)
+                 )
   end
+
+  Chef::Log.info "Updated DNS entry #{new_resource.entry_name}"
+  new_resource.updated_by_last_action(true)
 end
 
 action :destroy do
@@ -71,25 +108,43 @@ action :destroy do
   # Verify domain is in account
   # DME - zone.id matches domain
   # AWS - zone.domain matches domain
-  unless zone = connection.zones.detect { | zone_entry | zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/ }
+  unless zone = connection.zones.detect { | zone_entry |
+    zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
+  }
     raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
   end
 
-  # Check records if DNS entry already exists.
+  # Create list of DNS records to delete.
   # DME record.name matches subdomain ie 'www'
   # AWS record.name matches FQDN ending in 'www.domain.com.'
-  unless record = zone.records.detect { | record_entry | record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/ } 
-    raise "Entry '#{new_resource.entry_name}' does not exist"
+  matched_records = zone.records.find_all { | record_entry |
+    (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/)
+  }
+  unless new_resource.entry_value.empty?
+    matched_records = matched_records.find_all { | record_entry |
+      record_entry.value == new_resource.entry_value
+    }
   end
 
-  case new_resource.provider
-  when "dnsmadeeasy"
-    connection.delete_record(domain, record.id)
+  if matched_records.empty?
+    Chef::Log.info "No matching DNS records to delete (#{new_resource.entry_name})"
   else
-    record.destroy
+    Chef::Log.info "#{matched_records.size} DNS record(s) found to delete"
+
+    matched_records.each do |record|
+      case new_resource.provider
+      when "dnsmadeeasy"
+        # Using Fog DNSMadeEasy API call to delete record:
+        # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
+        connection.delete_record(domain, record.id)
+      else
+        record.destroy
+      end
+    end
+
+    Chef::Log.info "Deleted DNS entry(s) #{new_resource.entry_name}"
   end
 
-  Chef::Log.info "Deleted DNS entry #{new_resource.entry_name}"
   new_resource.updated_by_last_action(true)
 end
 

@@ -11,7 +11,7 @@ create DNS records for your nodes automatically.
 
 ## LWRP
 
-* actions: `:create`, `:destroy`
+* actions: `:create`, `:destroy`, `:update`
 
 ### Example
 

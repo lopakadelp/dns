@@ -59,6 +59,22 @@ suites:
         dnsmadeeasy_secret_key: DME_SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
+        type: A
+        value: "192.168.1.1"
+        ttl: 60
+- name: delete_all
+  run_list: ["recipe[dns::delete]"]
+  attributes:
+    cloud:
+      provider: vagrant
+    dns:
+      provider: dnsmadeeasy
+      credentials:
+        dnsmadeeasy_api_key: DME_API_KEY
+        dnsmadeeasy_secret_key: DME_SECRET_KEY
+      entry:
+        name: 101test.test.rightscale.com
+        value: ""
 - name: aws
   run_list: ["recipe[dns::default]"]
   attributes:
