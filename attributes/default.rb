@@ -6,5 +6,5 @@ default[:dns][:entry][:name] = node[:fqdn]
 default[:dns][:entry][:type] = 'A'
 default[:dns][:entry][:value] = node[:ipaddress]
 default[:dns][:entry][:oldvalue] = ""
-default[:dns][:entry][:ttl] = 60
+default[:dns][:entry][:ttl] = 1800
 default[:dns][:chef_client_config] = false
