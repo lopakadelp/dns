@@ -20,6 +20,8 @@ action :create do
   end
   
   # Checking if DNS entry with value already exists.  Will skip if it already exists.
+  # DME record.name matches subdomain ie 'www'
+  # AWS record.name matches FQDN ending in 'www.domain.com.'
   if zone.records.detect { | record_entry |
     (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/) &&
     record_entry.value == new_resource.entry_value
@@ -37,10 +39,11 @@ action :create do
       # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
       connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
     else
-      zone.records.create({:value => new_resource.entry_value,
-                          :name => new_resource.entry_name,
-                          :type => new_resource.type.upcase}.merge(options)
-                         )
+      zone.records.create({
+        :value => new_resource.entry_value,
+        :name => new_resource.entry_name,
+        :type => new_resource.type.upcase}.merge(options)
+      )
 
     Chef::Log.info "Created DNS entry: #{new_resource.entry_name} -> #{new_resource.entry_value}"
     end
@@ -76,6 +79,7 @@ action :update do
   end
 
   raise "No matching DNS records to update." if matched_records.empty?
+  raise "Multiple DNS records discovered.  Provide current value of record to update." if matched_records.size > 1
 
   # Options for updating record.
   options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
@@ -92,7 +96,8 @@ action :update do
 
     # Using Fog DNSMadeEasy API call to delete record:
     # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
-    record.update_record(domain, record.id, options)
+    connection.delete_record(domain, matched_records.first.id)
+    connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
   else
     record.update({:value => new_resource.entry_value,
                    :name => new_resource.entry_name,
