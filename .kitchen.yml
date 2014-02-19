@@ -45,6 +45,7 @@ suites:
       entry:
         name: 101test.test.rightscale.com
         type: A
+        oldvalue: 192.168.1.1
         value: 192.168.200.200
         ttl: 60
 - name: delete
