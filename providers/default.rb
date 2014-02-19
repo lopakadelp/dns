@@ -66,12 +66,16 @@ action :update do
   # Check records if DNS entry exists.
   # DME record.name matches subdomain ie 'www'
   # AWS record.name matches FQDN ending in 'www.domain.com.'
-  unless record = zone.records.detect { | record_entry |
-    (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/) &&
-  } 
-    raise "Entry '#{new_resource.entry_name}' does not exist"
+  matched_records = zone.records.find_all { | record_entry |
+    (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/)
+  }
+  unless new_resource.entry_oldvalue.empty?
+    matched_records = matched_records.find_all { | record_entry |
+      record_entry.value == new_resource.entry_oldvalue
+    }
   end
-  record_entry.value == new_resource.entry_oldvalue
+
+  raise "No matching DNS records to update." if matched_records.empty?
 
   # Options for updating record.
   options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
