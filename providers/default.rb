@@ -14,7 +14,7 @@ action :create do
   # Will check zone.id and zone.domain based on known providers:
   # DME - zone.id matches domain
   # AWS - zone.domain matches domain
-  unless zone = connection.zones.detect { | zone_entry |
+  unless zone = connection.zones.detect { |zone_entry|
     zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
   }
     raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
@@ -24,7 +24,7 @@ action :create do
   # Based on known providers, will check for both subdomain and FQDN:
   # DME - record.name matches subdomain ie 'www'
   # AWS - record.name matches FQDN ending in 'www.domain.com.'
-  if zone.records.detect { | record_entry |
+  if zone.records.detect { |record_entry|
     (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/) &&
     record_entry.value == new_resource.entry_value
   }
@@ -49,9 +49,8 @@ action :create do
     end
 
     Chef::Log.info "Created DNS entry: #{new_resource.entry_name} -> #{new_resource.entry_value}"
+    new_resource.updated_by_last_action(true)
   end
-
-  new_resource.updated_by_last_action(true)
 
 end
 
@@ -65,7 +64,7 @@ action :update do
   # Will check zone.id and zone.domain based on known providers:
   # DME - zone.id matches domain
   # AWS - zone.domain matches domain
-  unless zone = connection.zones.detect { | zone_entry |
+  unless zone = connection.zones.detect { |zone_entry|
     zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
   }
     raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
@@ -75,13 +74,13 @@ action :update do
   # Based on known providers, will check for both subdomain and FQDN:
   # DME - record.name matches subdomain ie 'www'
   # AWS - record.name matches FQDN ending in 'www.domain.com.'
-  matched_records = zone.records.find_all { | record_entry |
+  matched_records = zone.records.find_all { |record_entry|
     (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/)
   }
 
   # Narrow search if existing value is given.
   unless new_resource.entry_oldvalue.empty?
-    matched_records = matched_records.find_all { | record_entry |
+    matched_records = matched_records.find_all { |record_entry|
       record_entry.value == new_resource.entry_oldvalue
     }
   end
@@ -127,7 +126,7 @@ action :destroy do
   # Will check zone.id and zone.domain based on known providers:
   # DME - zone.id matches domain
   # AWS - zone.domain matches domain
-  unless zone = connection.zones.detect { | zone_entry |
+  unless zone = connection.zones.detect { |zone_entry|
     zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
   }
     raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
@@ -137,13 +136,13 @@ action :destroy do
   # Based on known providers, will check for both subdomain and FQDN:
   # DME - record.name matches subdomain ie 'www'
   # AWS - record.name matches FQDN ending in 'www.domain.com.'
-  matched_records = zone.records.find_all { | record_entry |
+  matched_records = zone.records.find_all { |record_entry|
     (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/)
   }
 
   # Narrow search if existing value is given.
   unless new_resource.entry_value.empty?
-    matched_records = matched_records.find_all { | record_entry |
+    matched_records = matched_records.find_all { |record_entry|
       record_entry.value == new_resource.entry_value
     }
   end
@@ -165,9 +164,8 @@ action :destroy do
     end
 
     Chef::Log.info "Deleted DNS entry(s) #{new_resource.entry_name}"
+    new_resource.updated_by_last_action(true)
   end
-
-  new_resource.updated_by_last_action(true)
 end
 
 def connection

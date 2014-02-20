@@ -8,5 +8,3 @@ dns 'Update DNS entry' do
   ttl node[:dns][:entry][:ttl]
   action :update
 end
-
-
