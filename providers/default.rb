@@ -11,14 +11,7 @@ action :create do
   (subdomain, domain) = new_resource.entry_name.split('.', 2)
 
   # Verify domain is in account.
-  # Will check zone.id and zone.domain based on known providers:
-  # DME - zone.id matches domain
-  # AWS - zone.domain matches domain
-  unless zone = connection.zones.detect do |zone_entry|
-    zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
-  end
-    raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
-  end
+  zone = get_zone(domain)
   
   # Checking if DNS entry with value already exists.  Will skip if it already exists.
   # Based on known providers, will check for both subdomain and FQDN:
@@ -61,14 +54,7 @@ action :update do
   (subdomain, domain) = new_resource.entry_name.split('.', 2)
 
   # Verify domain is in account.
-  # Will check zone.id and zone.domain based on known providers:
-  # DME - zone.id matches domain
-  # AWS - zone.domain matches domain
-  unless zone = connection.zones.detect do |zone_entry|
-    zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
-  end
-    raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
-  end
+  zone = get_zone(domain)
 
   # Checking if DNS entry to be updated exists.
   # Based on known providers, will check for both subdomain and FQDN:
@@ -79,7 +65,7 @@ action :update do
   end
 
   # Narrow search if existing value is given.
-  unless new_resource.entry_oldvalue.empty?
+  unless new_resource.entry_oldvalue.nil? || new_resource.entry_oldvalue.empty?
     matched_records = matched_records.find_all do |record_entry|
       record_entry.value == new_resource.entry_oldvalue
     end
@@ -123,14 +109,7 @@ action :destroy do
   (subdomain, domain) = new_resource.entry_name.split('.', 2)
 
   # Verify domain is in account.
-  # Will check zone.id and zone.domain based on known providers:
-  # DME - zone.id matches domain
-  # AWS - zone.domain matches domain
-  unless zone = connection.zones.detect do |zone_entry|
-    zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
-  end
-    raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
-  end
+  zone = get_zone(domain)
 
   # Create list of DNS records to delete.
   # Based on known providers, will check for both subdomain and FQDN:
@@ -170,4 +149,18 @@ end
 
 def connection
   @con ||= CookbookDNS.fog(new_resource.credentials.merge(:provider => new_resource.provider))
+end
+
+def get_zone(domain)
+  # Verify domain is in account and return zone object.
+  # Will check zone.id and zone.domain based on known providers:
+  # DME - zone.id matches domain
+  # AWS - zone.domain matches domain
+  unless zone = connection.zones.detect do |zone_entry|
+    zone_entry.id =~ /^#{domain}\.{0,1}$/ || zone_entry.domain =~ /^#{domain}\.{0,1}$/
+  end
+    raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
+  end
+
+  zone
 end
