@@ -10,7 +10,8 @@ action :create do
   # Will assume domain name is the removal of the first section of FQDN.
   (subdomain, domain) = new_resource.entry_name.split('.', 2)
 
-  # Verify domain is in account
+  # Verify domain is in account.
+  # Will check zone.id and zone.domain based on known providers:
   # DME - zone.id matches domain
   # AWS - zone.domain matches domain
   unless zone = connection.zones.detect { | zone_entry |
@@ -20,8 +21,9 @@ action :create do
   end
   
   # Checking if DNS entry with value already exists.  Will skip if it already exists.
-  # DME record.name matches subdomain ie 'www'
-  # AWS record.name matches FQDN ending in 'www.domain.com.'
+  # Based on known providers, will check for both subdomain and FQDN:
+  # DME - record.name matches subdomain ie 'www'
+  # AWS - record.name matches FQDN ending in 'www.domain.com.'
   if zone.records.detect { | record_entry |
     (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/) &&
     record_entry.value == new_resource.entry_value
@@ -44,20 +46,23 @@ action :create do
         :name => new_resource.entry_name,
         :type => new_resource.type.upcase}.merge(options)
       )
+    end
 
     Chef::Log.info "Created DNS entry: #{new_resource.entry_name} -> #{new_resource.entry_value}"
-    end
   end
+
   new_resource.updated_by_last_action(true)
 
 end
 
 action :update do
+
   # Use FQDN to generate domain.
   # Will assume domain name is the removal of the first section of FQDN.
   (subdomain, domain) = new_resource.entry_name.split('.', 2)
 
-  # Verify domain is in account
+  # Verify domain is in account.
+  # Will check zone.id and zone.domain based on known providers:
   # DME - zone.id matches domain
   # AWS - zone.domain matches domain
   unless zone = connection.zones.detect { | zone_entry |
@@ -66,12 +71,15 @@ action :update do
     raise "DOMAIN '#{domain}' NOT AVAILABLE IN ACCOUNT"
   end
 
-  # Check records if DNS entry exists.
-  # DME record.name matches subdomain ie 'www'
-  # AWS record.name matches FQDN ending in 'www.domain.com.'
+  # Checking if DNS entry to be updated exists.
+  # Based on known providers, will check for both subdomain and FQDN:
+  # DME - record.name matches subdomain ie 'www'
+  # AWS - record.name matches FQDN ending in 'www.domain.com.'
   matched_records = zone.records.find_all { | record_entry |
     (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/)
   }
+
+  # Narrow search if existing value is given.
   unless new_resource.entry_oldvalue.empty?
     matched_records = matched_records.find_all { | record_entry |
       record_entry.value == new_resource.entry_oldvalue
@@ -110,11 +118,13 @@ action :update do
 end
 
 action :destroy do
+
   # Use FQDN to generate domain.
   # Will assume domain name is the removal of the first section of FQDN.
   (subdomain, domain) = new_resource.entry_name.split('.', 2)
 
-  # Verify domain is in account
+  # Verify domain is in account.
+  # Will check zone.id and zone.domain based on known providers:
   # DME - zone.id matches domain
   # AWS - zone.domain matches domain
   unless zone = connection.zones.detect { | zone_entry |
@@ -124,11 +134,14 @@ action :destroy do
   end
 
   # Create list of DNS records to delete.
-  # DME record.name matches subdomain ie 'www'
-  # AWS record.name matches FQDN ending in 'www.domain.com.'
+  # Based on known providers, will check for both subdomain and FQDN:
+  # DME - record.name matches subdomain ie 'www'
+  # AWS - record.name matches FQDN ending in 'www.domain.com.'
   matched_records = zone.records.find_all { | record_entry |
     (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/)
   }
+
+  # Narrow search if existing value is given.
   unless new_resource.entry_value.empty?
     matched_records = matched_records.find_all { | record_entry |
       record_entry.value == new_resource.entry_value
