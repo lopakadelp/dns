@@ -9,6 +9,7 @@ ruby_block 'Set dns name attribute' do
 end
 
 dns 'Node DNS entry' do
+  dns_provider node[:dns][:provider]
   entry_name lazy{ node[:dns][:entry][:name] }
   entry_value node[:dns][:entry][:value]
   type node[:dns][:entry][:type]
