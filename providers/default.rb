@@ -1,7 +1,7 @@
 def load_current_resource
   new_resource.entry_name new_resource.name unless new_resource.entry_name
   new_resource.credentials node[:dns][:credentials] unless new_resource.credentials
-  new_resource.provider node[:dns][:provider] unless new_resource.provider
+  new_resource.dns_provider node[:dns][:provider] unless new_resource.dns_provider
 end
 
 action :create do
@@ -28,7 +28,7 @@ action :create do
     options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
     options[:priority] = new_resource.priority if new_resource.priority
 
-    case new_resource.provider
+    case new_resource.dns_provider
     when "dnsmadeeasy"
       # Using Fog DNSMadeEasy API call to create record:
       # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
@@ -78,7 +78,7 @@ action :update do
   options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
   options[:priority] = new_resource.priority if new_resource.priority
 
-  case new_resource.provider
+  case new_resource.dns_provider
   when "dnsmadeeasy"
     # From Fog doc:
     #
@@ -132,7 +132,7 @@ action :destroy do
     Chef::Log.info "#{matched_records.size} DNS record(s) found to delete"
 
     matched_records.each do |record|
-      case new_resource.provider
+      case new_resource.dns_provider
       when "dnsmadeeasy"
         # Using Fog DNSMadeEasy API call to delete record:
         # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
@@ -148,7 +148,7 @@ action :destroy do
 end
 
 def connection
-  @con ||= CookbookDNS.fog(new_resource.credentials.merge(:provider => new_resource.provider))
+  @con ||= CookbookDNS.fog(new_resource.credentials.merge(:provider => new_resource.dns_provider))
 end
 
 def get_zone(domain)
