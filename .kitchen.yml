@@ -45,7 +45,7 @@ suites:
       entry:
         name: 101test.test.rightscale.com
         type: A
-        oldvalue: 192.168.1.1
+        currentvalue: 192.168.1.1
         value: 192.168.200.200
         ttl: 60
 - name: delete
@@ -60,9 +60,7 @@ suites:
         dnsmadeeasy_secret_key: DME_SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
-        type: A
-        value: "192.168.1.1"
-        ttl: 60
+        currentvalue: "192.168.1.1"
 - name: delete_all
   run_list: ["recipe[dns::delete]"]
   attributes:
@@ -75,7 +73,6 @@ suites:
         dnsmadeeasy_secret_key: DME_SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
-        value: ""
 - name: aws
   run_list: ["recipe[dns::default]"]
   attributes:

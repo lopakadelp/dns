@@ -64,10 +64,10 @@ action :update do
     (record_entry.name == subdomain || record_entry.name =~ /^#{subdomain}\.#{domain}\.{0,1}$/)
   end
 
-  # Narrow search if existing value is given.
-  unless new_resource.entry_oldvalue.nil? || new_resource.entry_oldvalue.empty?
+  # Narrow search if current value is given.
+  unless new_resource.entry_currentvalue.nil? || new_resource.entry_currentvalue.empty?
     matched_records = matched_records.find_all do |record_entry|
-      record_entry.value == new_resource.entry_oldvalue
+      record_entry.value == new_resource.entry_currentvalue
     end
   end
 
@@ -120,7 +120,8 @@ action :destroy do
   end
 
   # Narrow search if existing value is given.
-  unless new_resource.entry_value.empty?
+  unless new_resource.entry_currentvalue.nil? || new_resource.entry_currentvalue.empty?
+    Chef::Log.info "Searching specific value of #{new_resource.entry_currentvalue}"
     matched_records = matched_records.find_all do |record_entry|
       record_entry.value == new_resource.entry_value
     end
