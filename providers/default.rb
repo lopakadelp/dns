@@ -12,7 +12,7 @@ action :create do
 
   # Verify domain is in account.
   zone = get_zone(domain)
-  
+
   # Checking if DNS entry with value already exists.  Will skip if it already exists.
   # Based on known providers, will check for both subdomain and FQDN:
   # DME - record.name matches subdomain ie 'www'
