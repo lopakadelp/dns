@@ -74,32 +74,39 @@ action :update do
   raise "No matching DNS records to update." if matched_records.empty?
   raise "Multiple DNS records discovered.  Provide current value of record to update." if matched_records.size > 1
 
-  # Options for updating record.
-  options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
-  options[:priority] = new_resource.priority if new_resource.priority
+  record = matched_records.first
 
-  case new_resource.dns_provider
-  when "dnsmadeeasy"
-    # From Fog doc:
-    #
-    # DNS Made Easy has no update record method but they plan to add it in the next update!
-    # They sent a reponse suggesting, there going to internaly delete/create a new record when
-    # we make update record call, so I've done the same here for now! If want to update a record,
-    # it might be better to manually destroy and then create a new record
-
-    # Using Fog DNSMadeEasy API call to delete record:
-    # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
-    connection.delete_record(domain, matched_records.first.id)
-    connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
+  # If current value matches new value, should not continue and quietly exit.
+  if record.value == new_resource.entry_value
+    Chef::Log.info "Skipping attempt to set same current value in DNS entry: #{record.value}"
   else
-    record.update({:value => new_resource.entry_value,
-                   :name => new_resource.entry_name,
-                   :type => new_resource.type.upcase}.merge(options)
-                 )
-  end
+    # Options for updating record.
+    options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
+    options[:priority] = new_resource.priority if new_resource.priority
 
-  Chef::Log.info "Updated DNS entry #{new_resource.entry_name}"
-  new_resource.updated_by_last_action(true)
+    case new_resource.dns_provider
+    when "dnsmadeeasy"
+      # From Fog doc:
+      #
+      # DNS Made Easy has no update record method but they plan to add it in the next update!
+      # They sent a reponse suggesting, there going to internaly delete/create a new record when
+      # we make update record call, so I've done the same here for now! If want to update a record,
+      # it might be better to manually destroy and then create a new record
+
+      # Using Fog DNSMadeEasy API call to delete record:
+      # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
+      connection.delete_record(domain, record.id)
+      connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
+    else
+      record.update({:value => new_resource.entry_value,
+                     :name => new_resource.entry_name,
+                     :type => new_resource.type.upcase}.merge(options)
+                   )
+    end
+
+    Chef::Log.info "Updated DNS entry #{new_resource.entry_name}"
+    new_resource.updated_by_last_action(true)
+  end
 end
 
 action :destroy do
