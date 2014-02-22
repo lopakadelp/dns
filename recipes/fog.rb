@@ -10,3 +10,9 @@ chef_gem "fog" do
   version '1.20.0'
   action :install
 end
+
+# Turn on Fog mocking
+if node[:dns][:mock]
+  require 'fog'
+  Fog.mock!
+end

@@ -18,15 +18,17 @@ platforms:
 
 suites:
 - name: default
+  run_list: ["recipe[fake::create_zone]"]
   run_list: ["recipe[dns::default]"]
   attributes:
     cloud:
       provider: vagrant
     dns:
-      provider: dnsmadeeasy
+      mock: true
+      provider: aws
       credentials:
-        dnsmadeeasy_api_key: DME_API_KEY
-        dnsmadeeasy_secret_key: DME_SECRET_KEY
+        aws_access_key_id: AWS_KEY
+        aws_secret_access_key: AWS_SECRET
       entry:
         name: 101test.test.rightscale.com
         type: A
@@ -38,10 +40,11 @@ suites:
     cloud:
       provider: vagrant
     dns:
-      provider: dnsmadeeasy
+      mock: true
+      provider: aws
       credentials:
-        dnsmadeeasy_api_key: DME_API_KEY
-        dnsmadeeasy_secret_key: DME_SECRET_KEY
+        aws_access_key_id: AWS_API_KEY
+        aws_secret_access_key: AWS_SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
         type: A
@@ -54,10 +57,11 @@ suites:
     cloud:
       provider: vagrant
     dns:
-      provider: dnsmadeeasy
+      mock: true
+      provider: aws
       credentials:
-        dnsmadeeasy_api_key: DME_API_KEY
-        dnsmadeeasy_secret_key: DME_SECRET_KEY
+        aws_access_key_id: AWS_API_KEY
+        aws_secret_access_key: AWS_SECRET_KEY
       entry:
         name: 101test.test.rightscale.com
         currentvalue: "192.168.1.1"
@@ -67,24 +71,10 @@ suites:
     cloud:
       provider: vagrant
     dns:
-      provider: dnsmadeeasy
-      credentials:
-        dnsmadeeasy_api_key: DME_API_KEY
-        dnsmadeeasy_secret_key: DME_SECRET_KEY
-      entry:
-        name: 101test.test.rightscale.com
-- name: aws
-  run_list: ["recipe[dns::default]"]
-  attributes:
-    cloud:
-      provider: vagrant
-    dns:
+      mock: true
       provider: aws
       credentials:
         aws_access_key_id: AWS_API_KEY
         aws_secret_access_key: AWS_SECRET_KEY
       entry:
-        name: 101test.rs-st.rightscale.com.
-        type: A
-        value: 192.168.1.1
-        ttl: 60
+        name: 101test.test.rightscale.com

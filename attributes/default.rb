@@ -8,3 +8,6 @@ default[:dns][:entry][:value] = node[:ipaddress]
 default[:dns][:entry][:currentvalue] = ""
 default[:dns][:entry][:ttl] = 1800
 default[:dns][:chef_client_config] = false
+
+# Used to enable mocking in Fog
+default[:dns][:mock] = false
