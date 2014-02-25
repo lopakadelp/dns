@@ -3,8 +3,8 @@ driver_plugin: vagrant
 driver_config:
   require_chef_omnibus: true
   customize:
-    cpus: 2
-    memory: 1024
+    cpus: 1
+    memory: 512
 
 platforms:
 - name: ubuntu-12.04
@@ -18,8 +18,13 @@ platforms:
 
 suites:
 - name: default
-  run_list: ["recipe[fake::create_zone]"]
-  run_list: ["recipe[dns::default]"]
+  run_list:
+  - recipe[fake::create_zone]
+  - recipe[dns::default]
+  - recipe[fake::first_update]
+  - recipe[dns::update]
+  - recipe[fake::last_update]
+  - recipe[dns::delete]
   attributes:
     cloud:
       provider: vagrant
@@ -30,9 +35,10 @@ suites:
         aws_access_key_id: AWS_KEY
         aws_secret_access_key: AWS_SECRET
       entry:
-        name: 101test.test.rightscale.com
+        name: 101test.test.com
         type: A
         value: 192.168.1.1
+        currentvalue: 192.168.200.200
         ttl: 60
 - name: update
   run_list: ["recipe[dns::update]"]
@@ -48,33 +54,6 @@ suites:
       entry:
         name: 101test.test.rightscale.com
         type: A
-        currentvalue: 192.168.1.1
-        value: 192.168.200.200
+        currentvalue: 192.168.200.200
+        value: 192.168.2.2
         ttl: 60
-- name: delete
-  run_list: ["recipe[dns::delete]"]
-  attributes:
-    cloud:
-      provider: vagrant
-    dns:
-      mock: true
-      provider: aws
-      credentials:
-        aws_access_key_id: AWS_API_KEY
-        aws_secret_access_key: AWS_SECRET_KEY
-      entry:
-        name: 101test.test.rightscale.com
-        currentvalue: "192.168.1.1"
-- name: delete_all
-  run_list: ["recipe[dns::delete]"]
-  attributes:
-    cloud:
-      provider: vagrant
-    dns:
-      mock: true
-      provider: aws
-      credentials:
-        aws_access_key_id: AWS_API_KEY
-        aws_secret_access_key: AWS_SECRET_KEY
-      entry:
-        name: 101test.test.rightscale.com

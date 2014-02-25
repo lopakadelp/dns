@@ -66,8 +66,16 @@ action :update do
 
   # Narrow search if current value is given.
   unless new_resource.entry_currentvalue.nil? || new_resource.entry_currentvalue.empty?
-    matched_records = matched_records.find_all do |record_entry|
-      record_entry.value == new_resource.entry_currentvalue
+    case new_resource.dns_provider
+    when "aws"
+      # On Route53, the value is in an array.
+      matched_records = matched_records.find_all do |record_entry|
+        record_entry.value[0] == new_resource.entry_currentvalue
+      end
+    else
+      matched_records = matched_records.find_all do |record_entry|
+        record_entry.value == new_resource.entry_currentvalue
+      end
     end
   end
 
@@ -97,6 +105,11 @@ action :update do
       # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
       connection.delete_record(domain, record.id)
       connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
+    when "aws"
+      record.modify({:value => new_resource.entry_value,
+                     :name => new_resource.entry_name,
+                     :type => new_resource.type.upcase}.merge(options)
+                   )
     else
       record.update({:value => new_resource.entry_value,
                      :name => new_resource.entry_name,
@@ -104,7 +117,7 @@ action :update do
                    )
     end
 
-    Chef::Log.info "Updated DNS entry #{new_resource.entry_name}"
+    Chef::Log.info "Updated DNS entry #{new_resource.entry_name} to #{new_resource.entry_value}"
     new_resource.updated_by_last_action(true)
   end
 end
@@ -129,8 +142,16 @@ action :destroy do
   # Narrow search if existing value is given.
   unless new_resource.entry_currentvalue.nil? || new_resource.entry_currentvalue.empty?
     Chef::Log.info "Searching specific value of #{new_resource.entry_currentvalue}"
-    matched_records = matched_records.find_all do |record_entry|
-      record_entry.value == new_resource.entry_value
+    case new_resource.dns_provider
+    when "aws"
+      # On Route53, the value is in an array.
+      matched_records = matched_records.find_all do |record_entry|
+        record_entry.value[0] == new_resource.entry_currentvalue
+      end
+    else
+      matched_records = matched_records.find_all do |record_entry|
+        record_entry.value == new_resource.entry_currentvalue
+      end
     end
   end
 

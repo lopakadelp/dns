@@ -5,11 +5,11 @@ require 'fog'
 
 dns = Fog::DNS.new({
   :provider     => 'aws',
-  :zerigo_email => "AWS_KEY",
-  :zerigo_token => "AWS_SECRET"
+  :aws_access_key_id => "AWS_KEY",
+  :aws_secret_access_key => "AWS_SECRET"
 })
 
 dns.zones.create(
-  :domain => 'test.rightscale.com',
+  :domain => 'test.com',
   :email  => 'admin@example.com'
 )
