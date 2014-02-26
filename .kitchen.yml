@@ -32,28 +32,11 @@ suites:
       mock: true
       provider: aws
       credentials:
-        aws_access_key_id: AWS_KEY
-        aws_secret_access_key: AWS_SECRET
+        aws_access_key_id: MOCK_ACCESS_KEY
+        aws_secret_access_key: MOCK_SECRET_KEY
       entry:
         name: 101test.test.com
         type: A
         value: 192.168.1.1
         currentvalue: 192.168.200.200
-        ttl: 60
-- name: update
-  run_list: ["recipe[dns::update]"]
-  attributes:
-    cloud:
-      provider: vagrant
-    dns:
-      mock: true
-      provider: aws
-      credentials:
-        aws_access_key_id: AWS_API_KEY
-        aws_secret_access_key: AWS_SECRET_KEY
-      entry:
-        name: 101test.test.rightscale.com
-        type: A
-        currentvalue: 192.168.200.200
-        value: 192.168.2.2
         ttl: 60
