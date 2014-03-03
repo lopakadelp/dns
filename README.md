@@ -1,26 +1,29 @@
 # DNS
 
-Create DNS records on a variety of providers and 
+Create DNS records on a variety of providers and
 create DNS records for your nodes automatically.
 
 ## Recipes
 
 * `default` create DNS entry for current node
+* `delete` deletes DNS entry
+* `update` updates DNS entry
 * `fqdn` updates node fqdn and hosts file
 * `chef-client` updates the chef-client config resource to include original node name
 
 ## LWRP
 
-* actions: `:create`, `:destroy`
+* actions: `:create`, `:destroy`, `:update`
 
 ### Example
 
 ```ruby
-dns 'dns.example.org' do
+dns 'www.example.org' do
+  dns_provider 'some_dns_provider'
   credentials :some_cloud_token => '[TOKEN]', :some_cloud_key => '[KEY]'
-  provider 'some_cloud'
   entry_value '127.0.2.2'
-  domain 'example.org'
+  type 'A'
+  ttl 1800
 end
 ```
 
@@ -33,6 +36,7 @@ end
 * `node[:dns][:entry][:name]` - dns entry name
 * `node[:dns][:entry][:type]` - dns entry type
 * `node[:dns][:entry][:value]` - dns entry value
+* `node[:dns][:entry][:currentvalue]` - dns entry value of record to update or delete
 * `node[:dns][:chef_client_config]` - automatically include `dns::chef-client` recipe
 
 # Infos
