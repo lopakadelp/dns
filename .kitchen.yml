@@ -19,6 +19,7 @@ platforms:
 suites:
 - name: default
   run_list:
+  - recipe[fake::fog_mock]
   - recipe[fake::create_zone]
   - recipe[dns::default]
   - recipe[fake::first_update]

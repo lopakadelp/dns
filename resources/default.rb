@@ -8,5 +8,5 @@ attribute :credentials, :kind_of => Hash
 attribute :dns_provider, :kind_of => String
 attribute :domain, :kind_of => String
 attribute :type, :kind_of => String, :required => true, :default => 'A'
-attribute :ttl, :kind_of => Numeric
+attribute :ttl, :kind_of => Numeric, :default => 1800
 attribute :priority, :kind_of => Numeric

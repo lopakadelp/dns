@@ -25,7 +25,7 @@ action :create do
 
   else
     # Options for record creation.
-    options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
+    options = {:ttl => new_resource.ttl}
     options[:priority] = new_resource.priority if new_resource.priority
 
     case new_resource.dns_provider
@@ -34,10 +34,12 @@ action :create do
       # http://rubydoc.info/gems/fog/Fog/DNS/DNSMadeEasy/Real
       connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
     else
-      zone.records.create({
-        :value => new_resource.entry_value,
-        :name => new_resource.entry_name,
-        :type => new_resource.type.upcase}.merge(options)
+      zone.records.create(
+        {
+          :value => new_resource.entry_value,
+          :name => new_resource.entry_name,
+          :type => new_resource.type.upcase
+        }.merge(options)
       )
     end
 
@@ -89,7 +91,7 @@ action :update do
     Chef::Log.info "Skipping attempt to set same current value in DNS entry: #{record.value}"
   else
     # Options for updating record.
-    options = {:ttl => new_resource.ttl ? new_resource.ttl : 1800}
+    options = {:ttl => new_resource.ttl}
     options[:priority] = new_resource.priority if new_resource.priority
 
     case new_resource.dns_provider
@@ -106,15 +108,21 @@ action :update do
       connection.delete_record(domain, record.id)
       connection.create_record(domain, subdomain, new_resource.type.upcase, new_resource.entry_value, options)
     when "aws"
-      record.modify({:value => new_resource.entry_value,
-                     :name => new_resource.entry_name,
-                     :type => new_resource.type.upcase}.merge(options)
-                   )
+      record.modify(
+        {
+          :value => new_resource.entry_value,
+          :name => new_resource.entry_name,
+          :type => new_resource.type.upcase
+        }.merge(options)
+      )
     else
-      record.update({:value => new_resource.entry_value,
-                     :name => new_resource.entry_name,
-                     :type => new_resource.type.upcase}.merge(options)
-                   )
+      record.update(
+        {
+          :value => new_resource.entry_value,
+          :name => new_resource.entry_name,
+          :type => new_resource.type.upcase
+        }.merge(options)
+      )
     end
 
     Chef::Log.info "Updated DNS entry #{new_resource.entry_name} to #{new_resource.entry_value}"
