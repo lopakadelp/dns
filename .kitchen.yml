@@ -29,7 +29,7 @@ suites:
       provider: vagrant
     dns:
       mock: true
-      provider: aws
+      provider: AWS
       domain: test.com
       credentials:
         aws_access_key_id: MOCK_ACCESS_KEY
