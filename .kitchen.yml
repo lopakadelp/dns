@@ -28,7 +28,6 @@ suites:
     cloud:
       provider: vagrant
     dns:
-      mock: true
       provider: AWS
       domain: test.com
       credentials:
