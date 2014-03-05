@@ -38,3 +38,4 @@ suites:
         name: 101test
         type: A
         value: 192.168.1.1
+        ttl: 60
