@@ -1,0 +1,40 @@
+---
+driver_plugin: vagrant
+driver_config:
+  require_chef_omnibus: true
+  customize:
+    cpus: 1
+    memory: 512
+
+platforms:
+- name: ubuntu-12.04
+  driver_config:
+    box: opscode-ubuntu-12.04
+    box_url: https://opscode-vm-bento.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box
+- name: centos-6.4
+  driver_config:
+    box: opscode-centos-6.4
+    box_url: https://opscode-vm-bento.s3.amazonaws.com/vagrant/opscode_centos-6.4_provisionerless.box
+
+suites:
+- name: default
+  run_list:
+  - recipe[fake::fog_mock]
+  - recipe[fake::zone]
+  - recipe[dns::default]
+  - recipe[fake::update]
+  - recipe[fake::delete]
+  attributes:
+    cloud:
+      provider: vagrant
+    dns:
+      provider: AWS
+      domain: test.com
+      credentials:
+        aws_access_key_id: MOCK_ACCESS_KEY
+        aws_secret_access_key: MOCK_SECRET_KEY
+      entry:
+        name: 101test
+        type: A
+        value: 192.168.1.1
+        ttl: 60
