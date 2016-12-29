@@ -1,8 +1,7 @@
-site :opscode
+source 'https://supermarket.chef.io'
 
 metadata
 
 group :integration do
-  cookbook 'apt', '~> 2.6.0'
   cookbook 'dns-test', path: './test/cookbooks/dns-test/'
 end
