@@ -2,7 +2,7 @@ name             'dns-test'
 version          '0.1.0'
 
 depends 'dns'
-depends 'hosts_file', '~> 0.1.4'
+depends 'hosts_file'
 
 recipe 'dns-test::zone', 'Creates a DNS zone'
 recipe 'dns-test::update', 'Updates a DNS entry'

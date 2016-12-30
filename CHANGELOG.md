@@ -1,3 +1,6 @@
+# v0.1.5
+* update to chef 12, and chefdk 1.0.3
+
 # v0.1.4
 * Provide `dns` LWRP for creating and destroying records
 * Refactor fog interaction to support more providers
