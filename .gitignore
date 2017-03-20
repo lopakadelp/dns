@@ -1,8 +1,27 @@
-Cheffile.lock
+.vagrant
+Berksfile.lock
+*~
+*#
+.#*
+\#*#
+.*.sw[a-z]
+*.un~
+/cookbooks
+cache_dir
+
+# Bundler
 Gemfile.lock
+bin/*
+.bundle/*
+
+VERSION
 .kitchen/
 .kitchen.local.yml
 
-.librarian/
-
+doc/
+.yardoc/
+berks-cookbooks/
+knife.rb
+syntaxcache/
+coverage/
 tmp/

@@ -1,0 +1,10 @@
+AllCops:
+  Exclude:
+    - 'berks-cookbooks/**/*'
+    - 'knife.rb'
+Style/IfInsideElse:
+  Exclude:
+  - 'providers/dnsmadeeasy_api20.rb'
+Style/MultilineBlockChain:
+  Exclude:
+   - 'recipes/default.rb'
