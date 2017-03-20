@@ -8,8 +8,8 @@ issues_url 'https://github.com/rightscale-cookbooks-contrib/dns/issues'
 source_url 'https://github.com/rightscale-cookbooks-contrib/dns'
 chef_version '>= 12.0' if respond_to?(:chef_version)
 
-depends 'hosts_file', '~> 0.2.2'
+depends 'hosts_file', '>= 0.2.2'
 depends 'fog_gem'
 depends 'build-essential', '>= 1.1.0' # set minimum so we get compile time support
-depends 'xml', '~> 1.2.0'
+depends 'xml', '>= 1.2.0'
 depends 'chef-client'
